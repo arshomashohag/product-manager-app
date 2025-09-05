@@ -1,0 +1,58 @@
+{
+  "name": "product-manager-app",
+  "version": "1.0.0",
+  "description": "A cross-platform product management desktop app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "NODE_ENV=development electron .",
+    "build": "npm run build-react && electron-builder",
+    "build-react": "cd frontend && npm run build && cp -r build ../",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "install-deps": "cd frontend && npm install && cd ../backend && pip install -r requirements.txt"
+  },
+  "build": {
+    "appId": "com.yourcompany.productmanager",
+    "productName": "Product Manager",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "build/**/*",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "app/backend",
+        "filter": ["**/*", "!__pycache__", "!*.pyc"]
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "keywords": [
+    "electron",
+    "react",
+    "flask",
+    "product-management"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^22.3.27",
+    "electron-builder": "^24.13.3"
+  }
+}
