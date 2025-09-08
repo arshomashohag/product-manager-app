@@ -1,0 +1,6 @@
+Backend: 
+* activate venv with the command : source venv/bin/activate
+* run the project with : python3 app.py
+
+front end : 
+* run the project with  command : npm run dev 
