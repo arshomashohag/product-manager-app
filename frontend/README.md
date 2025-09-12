@@ -1,5 +1,11 @@
 # Getting Started with Create React App
 
+## Distribution Notes
+
+- The `.dmg` file generated for macOS is intended for third-party distribution only and will NOT be uploaded to the App Store.
+- Windows `.exe` and Linux packages will be generated in the `dist` folder after running `npm run dist`.
+# Getting Started with Create React App
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
