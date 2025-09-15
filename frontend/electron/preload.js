@@ -1,5 +1,9 @@
-const { contextBridge } = require("electron");
+
+const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("electronAPI", {
-  ping: () => "pong"
+  ping: () => "pong",
+  saveProduct: (product) => ipcRenderer.invoke("save-product", product),
+  selectImage: () => ipcRenderer.invoke("select-image"),
+  loadProducts: () => ipcRenderer.invoke("load-products"),
 });

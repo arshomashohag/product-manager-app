@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 
 function App() {
@@ -6,41 +6,22 @@ function App() {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
-    description: ''
+    description: '',
+    imagePath: ''
   });
 
-  // Use 127.0.0.1 instead of localhost for more reliable connection
-  const API_BASE = 'http://127.0.0.1:5001/api';
-
-  // Load products on component mount
-  useEffect(() => {
+  // Load products from local storage
+  React.useEffect(() => {
+    const fetchProducts = async () => {
+      if (window.electronAPI && window.electronAPI.loadProducts) {
+        const result = await window.electronAPI.loadProducts();
+        if (result.success) {
+          setProducts(result.products);
+        }
+      }
+    };
     fetchProducts();
   }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const response = await fetch(`${API_BASE}/products`, {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setProducts(data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      // Add more detailed error logging
-      if (error instanceof TypeError && error.message === 'Failed to fetch') {
-        console.error('Network error - Is the Flask server running?');
-      }
-    }
-  };
 
   const handleInputChange = (e) => {
     setFormData({
@@ -49,30 +30,33 @@ function App() {
     });
   };
 
+  const handleSelectImage = async () => {
+    if (window.electronAPI && window.electronAPI.selectImage) {
+      const imagePath = await window.electronAPI.selectImage();
+      if (imagePath) {
+        setFormData({ ...formData, imagePath });
+      }
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!formData.name || !formData.price) {
       alert('Name and price are required');
       return;
     }
-
     try {
-      const response = await fetch(`${API_BASE}/products`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        const newProduct = await response.json();
-        setProducts([...products, newProduct]);
-        setFormData({ name: '', price: '', description: '' });
+      if (window.electronAPI && window.electronAPI.saveProduct) {
+        const result = await window.electronAPI.saveProduct(formData);
+        if (result.success) {
+          setProducts([...products, result.product]);
+          setFormData({ name: '', price: '', description: '', imagePath: '' });
+        } else {
+          alert('Error saving product: ' + result.error);
+        }
       }
     } catch (error) {
-      console.error('Error adding product:', error);
+      alert('Error saving product: ' + error.message);
     }
   };
 
@@ -119,6 +103,29 @@ function App() {
               />
             </div>
             
+            <div className="form-group">
+              <label>Image:</label>
+              <button type="button" onClick={handleSelectImage}>
+                {formData.imagePath ? "Change Image" : "Add Image"}
+              </button>
+              {formData.imagePath && (
+                <span style={{ marginLeft: '10px' }}>Selected</span>
+              )}
+              {/* Image preview before submit */}
+              {formData.imagePath && (
+                <div style={{ marginTop: '10px' }}>
+                  <img
+                    src={`file://${formData.imagePath}`}
+                    alt="Preview"
+                    style={{ width: '100px', border: '1px solid #ccc' }}
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                  <div style={{ fontSize: '10px', color: '#888' }}>
+                    {formData.imagePath}
+                  </div>
+                </div>
+              )}
+            </div>
             <button type="submit">Add Product</button>
           </form>
         </div>
@@ -129,12 +136,25 @@ function App() {
             <p>No products yet. Add some above!</p>
           ) : (
             <div className="products-grid">
-              {products.map((product) => (
-                <div key={product.id} className="product-card">
+              {products.map((product, idx) => (
+                <div key={idx} className="product-card">
                   <h3>{product.name}</h3>
                   <p className="price">${product.price}</p>
                   {product.description && (
                     <p className="description">{product.description}</p>
+                  )}
+                  {product.savedImagePath && (
+                    <div style={{ marginTop: '10px' }}>
+                      <img
+                        src={`file://${product.savedImagePath}`}
+                        alt="Product"
+                        style={{ width: '100px', border: '1px solid #ccc' }}
+                        onError={e => { e.target.style.display = 'none'; }}
+                      />
+                      <div style={{ fontSize: '10px', color: '#888' }}>
+                        {product.savedImagePath}
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}
